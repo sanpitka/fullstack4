@@ -22,7 +22,6 @@ describe.only('number of blogs', () => {
 
   test.only('The unique identifier property of the blog posts is named id', async () => {
     const response = await api.get('/api/blogs')
-    console.log(response.body)
     assert(response.body[0].id)
   })
 })
