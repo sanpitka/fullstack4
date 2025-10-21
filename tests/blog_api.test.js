@@ -68,6 +68,26 @@ describe('HTTP request tests', () => {
     assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
     assert(titles.includes(newBlog.title), true)
   })
+
+  test('blog without likes defaults to 0', async () => {
+    const newBlog = {
+      title: 'Kukaan ei pidä minusta',
+      author: 'Yksinäinen Sielu',
+      url: 'http://nyyh.vuodatus.net/'
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+    const titles = response.body.map(blog => blog.title)
+    assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
+    assert(titles.includes(newBlog.title), true)
+    assert.strictEqual(response.body[response.body.length - 1].likes, 0)
+  })
 })
 
 after(async () => {
