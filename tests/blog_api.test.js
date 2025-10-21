@@ -8,27 +8,9 @@ const Blog = require('../models/blog')
 
 const api = supertest(app)
 
-const initialBlogs = [
-  {
-    title: 'Vaarallinen juhannus',
-    author: 'Tove Jansson',
-    url: 'http://hattivatti.blogspot.com/',
-    likes: 71824
-  },
-  {
-    title: 'Veronan yöt',
-    author: 'Julia Capulet',
-    url: 'http://oiromeo.lily.fi/',
-    likes: 46
-  },
-]
-
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(initialBlogs[0])
-  await blogObject.save()
-  blogObject = new Blog(initialBlogs[1])
-  await blogObject.save()
+  await Blog.insertMany(helper.initialBlogs)
 })
 
 describe('HTTP request tests', () => {
@@ -88,6 +70,21 @@ describe('HTTP request tests', () => {
     assert(titles.includes(newBlog.title), true)
     assert.strictEqual(response.body[response.body.length - 1].likes, 0)
   })
+
+  test('blog without title and url is not added', async () => {
+    const newBlog = {
+      author: 'Kai Unho',
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, helper.initialBlogs.length)
+  })
+
 })
 
 after(async () => {

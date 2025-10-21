@@ -8,7 +8,9 @@ router.get('/', async (request, response) => {
 
 router.post('/', async (request, response) => {
   const blog = new Blog(request.body)
-  if (blog.likes === undefined) {
+  if (!blog.title || !blog.url) {
+    return response.status(400).json({ error: 'title and url are required' })
+  } else if (blog.likes === undefined) {
     blog.likes = 0
   }
   const result = await blog.save()
