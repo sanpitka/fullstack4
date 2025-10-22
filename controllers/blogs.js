@@ -1,28 +1,43 @@
-const router = require('express').Router()
+const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
-router.get('/', async (request, response) => {
+blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({})
   response.json(blogs)
 })
 
-router.post('/', async (request, response) => {
-  const blog = new Blog(request.body)
-  if (!blog.title || !blog.url) {
+blogsRouter.post('/', async (request, response) => {
+  const body = request.body
+  const user = await User.findById(body.userId)
+  if (!user) {
+    return response.status(400).json({ error: 'userId missing or invalid' })
+  }
+  if (!body.title || !body.url) {
     return response.status(400).json({ error: 'title and url are required' })
-  } else if (blog.likes === undefined) {
+  }
+  const blog = new Blog({
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes,
+    user: user._id
+  })
+  if (body.likes === undefined) {
     blog.likes = 0
   }
   const result = await blog.save()
+  user.blogs = user.blogs.concat(result._id)
+  await user.save()
   response.status(201).json(result)
 })
 
-router.delete('/:id', async (request, response) => {
+blogsRouter.delete('/:id', async (request, response) => {
   await Blog.findByIdAndDelete(request.params.id)
   response.status(204).end()
 })
 
-router.put('/:id', async (request, response) => {
+blogsRouter.put('/:id', async (request, response) => {
   const updatedBlog = await Blog.findByIdAndUpdate(
     request.params.id,
     request.body,
@@ -31,4 +46,4 @@ router.put('/:id', async (request, response) => {
   response.json(updatedBlog)
 })
 
-module.exports = router
+module.exports = blogsRouter
