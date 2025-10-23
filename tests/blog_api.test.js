@@ -301,7 +301,7 @@ describe('when deleting and updating blogs', () => {
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
   })
 
-  test('gives error code 401 if anyone else but the owner of the blog tries to delete it', async () => {
+  test('gives error code 401 if user trying to delete is not the owner', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
     const loginResponse = await api
