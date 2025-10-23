@@ -24,6 +24,15 @@ beforeEach(async () => {
 
   await user.save()
 
+  const passwordHash2 = await bcrypt.hash(helper.initialUsers[1].password, 10)
+  const user2 = new User({
+    username: helper.initialUsers[1].username,
+    name: helper.initialUsers[1].name,
+    passwordHash: passwordHash2
+  })
+
+  await user2.save()
+
   const testBlogs = helper.initialBlogs.map(blog => ({
     ...blog,
     user: user._id
@@ -274,14 +283,43 @@ describe('when deleting and updating blogs', () => {
   test('deletes a blog successfully with a status code 204', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
+    const loginResponse = await api
+      .post('/api/login')
+      .send({
+        username: 'tofslan',
+        password: 'heimuumit'
+      })
+    const token = loginResponse.body.token
 
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(204)
     const blogsAtEnd = await helper.blogsInDb()
     const titles = blogsAtEnd.map(blog => blog.title)
     assert(!titles.includes(blogToDelete.title))
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+  })
+
+  test('gives error code 401 if anyone else but the owner of the blog tries to delete it', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+    const loginResponse = await api
+      .post('/api/login')
+      .send({
+        username: 'julle',
+        password: 'seitäon'
+      })
+    const token = loginResponse.body.token
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401)
+    const blogsAtEnd = await helper.blogsInDb()
+    const titles = blogsAtEnd.map(blog => blog.title)
+    assert(titles.includes(blogToDelete.title))
+    assert.strictEqual(blogsAtStart.length, blogsAtEnd.length)
   })
 
   test('the likes of a blog can be updated successfully', async () => {
