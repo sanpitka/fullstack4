@@ -95,6 +95,78 @@ describe('when adding a new user', () => {
     assert(!usernames.includes(newUser.username) || usersAtEnd.length === usersAtStart.length)
   })
 })
+describe('when logging in', () => {
+  test('succeeds with correct credentials', async () => {
+    const loginDetails = {
+      username: 'tofslan',
+      password: 'heimuumit'
+    }
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    assert(response.body.token)
+  })
+
+  test('fails with status 401 if password is wrong', async () => {
+    const loginDetails = {
+      username: 'tofslan',
+      password: 'wrongpassword'
+    }
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+    assert(!response.body.token)
+  })
+
+  test('fails with status 401 if username does not exist', async () => {
+    const loginDetails = {
+      username: 'nonexistinguser',
+      password: 'somepassword'
+    }
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+    assert(!response.body.token)
+  })
+
+  test('fails with status 401 if username is too short', async () => {
+    const usersAtStart = await helper.usersInDb()
+    const loginDetails = {
+      username: 'to',
+      password: 'pitkäsalasana'
+    }
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+    
+    const usersAtEnd = await helper.usersInDb()
+    assert(!response.body.token)
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+  test('fails with status 401 if password is too short', async () => {
+    const usersAtStart = await helper.usersInDb()
+    const loginDetails = {
+      username: 'käyttäjä',
+      password: 'hi'
+    }
+    const response = await api
+      .post('/api/login')
+      .send(loginDetails)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+    const usersAtEnd = await helper.usersInDb()
+    assert(!response.body.token)
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+})
 
 describe('when adding a new blog', () => {
   test('a valid blog can be added with valid token', async () => {
@@ -126,7 +198,7 @@ describe('when adding a new blog', () => {
     const titles = blogsAtEnd.map(blog => blog.title)
     assert(titles.includes(newBlog.title), true)
 
-    //Compare the user to the one who we logged in as
+    //Comparing the user to the one who we logged in as
     const createdBlog = await Blog.findById(response.body.id).populate('user')
     assert.strictEqual(createdBlog.user.username, 'tofslan')
 })
