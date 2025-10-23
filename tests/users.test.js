@@ -11,12 +11,17 @@ const api = supertest(app)
 
 describe('when there is initially one user at db', () => {
   beforeEach(async () => {
+    await Blog.deleteMany({})
     await User.deleteMany({})
 
     const passwordHash = await bcrypt.hash('salasana', 10)
-    const user = new User({ username: 'testi', passwordHash })
+    const user = new User({ 
+      username: 'testi', 
+      name: 'Erkki Esimerkki',
+      passwordHash })
 
-    await user.save()
+    const savedUser = await user.save()
+    testUserId = savedUser._id
   })
 
   test('creation succeeds with a fresh username', async () => {

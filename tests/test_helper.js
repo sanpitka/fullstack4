@@ -1,4 +1,3 @@
-const { init } = require('../app')
 const Blog = require('../models/blog')
 const User = require('../models/user')
 
@@ -6,14 +5,14 @@ const initialBlogs = [
     {
         title: "Vaarallinen juhannus",
         author: "Tove Jansson",
-        url: "hattivatti.blogspot.com",
+        url: "http://hattivatti.blogspot.com",
         likes: 71842,
         id: "66426e93a189228adc77d783"
     },
     {
         title: "Veronan yöt",
         author: "Julia Capulet",
-        url: "oiromeo.lily.fi",
+        url: "http://oiromeo.lily.fi",
         likes: 46,
         id: "664275b688b3cbb58af74252"
     }
