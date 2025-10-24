@@ -53,7 +53,7 @@ blogsRouter.put('/:id', async (request, response) => {
     request.params.id,
     request.body,
     { new: true, runValidators: true }
-  )
+  ).populate('user', { username: 1, name: 1 })
   response.json(updatedBlog)
 })
 
