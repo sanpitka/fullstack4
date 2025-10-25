@@ -207,7 +207,7 @@ describe('when adding a new blog', () => {
     const titles = blogsAtEnd.map(blog => blog.title)
     assert(titles.includes(newBlog.title), true)
 
-    //Comparing the user to the one who we logged in as
+    //Comparing the user to the one who is logged in
     const createdBlog = await Blog.findById(response.body.id).populate('user')
     assert.strictEqual(createdBlog.user.username, 'tofslan')
 })

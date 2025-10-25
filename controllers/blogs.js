@@ -17,20 +17,23 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
   if (!body.title || !body.url) {
     return response.status(400).json({ error: 'title and url are required' })
   }
+
   const blog = new Blog({
     title: body.title,
     author: body.author,
     url: body.url,
-    likes: body.likes,
+    likes: body.likes ?? 0,
     user: request.user._id
   })
-  if (body.likes === undefined) {
-    blog.likes = 0
-  }
-  const result = await blog.save()
-  request.user.blogs = request.user.blogs.concat(result._id)
-  await request.user.save()
-  response.status(201).json(result)
+
+    const saved = await blog.save()
+    request.user.blogs = request.user.blogs.concat(saved._id)
+    
+    await request.user.save()
+
+    const populated = await saved.populate('user', { username: 1, name: 1 })
+
+    response.status(201).json(populated)
 })
 
 blogsRouter.delete('/:id', userExtractor, async (request, response) => {
